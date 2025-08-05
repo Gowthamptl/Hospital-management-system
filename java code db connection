@@ -1,0 +1,10 @@
+import java.sql.*;
+
+public class DBConnection {
+    public static Connection connect() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/hospital_db";
+        String user = "root";
+        String password = "Gowtham7@."; // Replace with your MySQL password
+        return DriverManager.getConnection(url, user, password);
+    }
+}
