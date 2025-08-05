@@ -1,0 +1,116 @@
+import java.sql.*;
+import java.util.*;
+
+public class HospitalManagement {
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n--- Hospital Management Menu ---");
+            System.out.println("1. Add Patient");
+            System.out.println("2. Add Doctor");
+            System.out.println("3. Book Appointment");
+            System.out.println("4. View Appointments");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: addPatient(); break;
+                case 2: addDoctor(); break;
+                case 3: bookAppointment(); break;
+                case 4: viewAppointments(); break;
+                case 5: System.exit(0);
+                default: System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    static void addPatient() {
+        try (Connection conn = DBConnection.connect()) {
+            System.out.print("Enter patient name: ");
+            String name = sc.nextLine();
+            System.out.print("Enter age: ");
+            int age = sc.nextInt(); sc.nextLine();
+            System.out.print("Enter disease: ");
+            String disease = sc.nextLine();
+
+            String sql = "INSERT INTO patients (name, age, disease) VALUES (?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, name);
+            ps.setInt(2, age);
+            ps.setString(3, disease);
+            ps.executeUpdate();
+
+            System.out.println("✅ Patient added!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void addDoctor() {
+        try (Connection conn = DBConnection.connect()) {
+            System.out.print("Enter doctor name: ");
+            String name = sc.nextLine();
+            System.out.print("Enter specialization: ");
+            String spec = sc.nextLine();
+
+            String sql = "INSERT INTO doctors (name, specialization) VALUES (?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, name);
+            ps.setString(2, spec);
+            ps.executeUpdate();
+
+            System.out.println("✅ Doctor added!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void bookAppointment() {
+        try (Connection conn = DBConnection.connect()) {
+            System.out.print("Enter patient ID: ");
+            int pid = sc.nextInt();
+            System.out.print("Enter doctor ID: ");
+            int did = sc.nextInt();
+            sc.nextLine();
+            System.out.print("Enter appointment date (YYYY-MM-DD): ");
+            String date = sc.nextLine();
+
+            String sql = "INSERT INTO appointments (patient_id, doctor_id, appointment_date) VALUES (?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, pid);
+            ps.setInt(2, did);
+           ps.setDate(3, java.sql.Date.valueOf(date));
+
+            ps.executeUpdate();
+
+            System.out.println("✅ Appointment booked!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void viewAppointments() {
+        try (Connection conn = DBConnection.connect()) {
+            String sql = """
+                SELECT a.appointment_id, p.name AS patient, d.name AS doctor, a.appointment_date
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN doctors d ON a.doctor_id = d.doctor_id
+                """;
+
+            ResultSet rs = conn.createStatement().executeQuery(sql);
+            System.out.println("\n📅 Appointments:");
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("appointment_id")
+                    + " | Patient: " + rs.getString("patient")
+                    + " | Doctor: " + rs.getString("doctor")
+                    + " | Date: " + rs.getDate("appointment_date"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
